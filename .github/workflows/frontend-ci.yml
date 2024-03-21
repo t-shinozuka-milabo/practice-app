@@ -38,7 +38,7 @@ jobs:
       uses: actions/cache@v3
       id: pnpm_cache
       with:
-        path: /usr/local/lib/node_modules/pnpm
+        path: /usr/local/bin/pnpm
         key: ${{ runner.os }}-pnpm-${{ env.PNPM_VERSION }}
 
     - name: Install globals
