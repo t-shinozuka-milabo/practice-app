@@ -47,6 +47,11 @@ jobs:
       if: ${{ steps.pnpm_cache.outputs.cache-hit != 'true' }}
       run: npm i -g pnpm@${{ env.PNPM_VERSION }}
 
+    - name: detect
+      run: |
+        ls -al /usr/local/bin
+        npm list -g
+
     - name: Use Node modules cache
       uses: actions/cache@v3
       id: packages_cache
