@@ -38,7 +38,9 @@ jobs:
       uses: actions/cache@v3
       id: pnpm_cache
       with:
-        path: /usr/local/bin/pnpm
+        path: |
+          /usr/local/bin/pnpm
+          /usr/local/lib/node_modules/pnpm
         key: ${{ runner.os }}-pnpm-${{ env.PNPM_VERSION }}
 
     - name: Install globals
@@ -57,7 +59,7 @@ jobs:
       run: pnpm i
 
     - name: Run test
-      run: pnpm test
+      run: ls && pnpm test
 
   run-component-test:
     runs-on: ubuntu-latest
