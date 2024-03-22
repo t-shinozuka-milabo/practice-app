@@ -39,8 +39,8 @@ jobs:
       id: pnpm_cache
       with:
         path: |
-          /usr/local/bin/pnpm
-          /usr/local/lib/node_modules/pnpm
+          /opt/hostedtoolcache/node/18.19.1/x64/bin/pnpm
+          /opt/hostedtoolcache/node/18.19.1/x64/lib/pnpm
         key: ${{ runner.os }}-pnpm-${{ env.PNPM_VERSION }}
 
     - name: Install globals
