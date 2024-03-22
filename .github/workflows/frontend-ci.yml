@@ -51,6 +51,7 @@ jobs:
       run: |
         ls -al /usr/local/bin
         npm list -g
+        which pnpm
 
     - name: Use Node modules cache
       uses: actions/cache@v3
