@@ -44,7 +44,7 @@ jobs:
         key: ${{ runner.os }}-node-${{ matrix.node-version }}-pnpm-${{ env.PNPM_VERSION }}
 
     - name: Install globals
-      if: ${{ steps.pnpm_cache.outputs.cache-hit != "true" }}
+      if: ${{ steps.pnpm_cache.outputs.cache-hit != 'true' }}
       run: npm i -g pnpm@${{ env.PNPM_VERSION }}
 
     - name: Use Node modules cache
@@ -55,7 +55,7 @@ jobs:
         key: ${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles("**/package-lock.json") }}
 
     - name: Install dependencies
-      if: ${{ steps.packages_cache.outputs.cache-hit != "true" }}
+      if: ${{ steps.packages_cache.outputs.cache-hit != 'true' }}
       run: pnpm i
 
     - name: Run test
@@ -83,12 +83,12 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Install globals
-      if: ${{ steps.pnpm_cache.outputs.cache-hit != "true" }}
+      if: ${{ steps.pnpm_cache.outputs.cache-hit != 'true' }}
       run: npm i -g pnpm@${{ env.PNPM_VERSION }}
 
 
     - name: Install dependencies
-      if: ${{ steps.packages_cache.outputs.cache-hit != "true" }}
+      if: ${{ steps.packages_cache.outputs.cache-hit != 'true' }}
       run: pnpm i
 
   build-nextjs-app:
@@ -108,12 +108,12 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Install globals
-      if: ${{ steps.pnpm_cache.outputs.cache-hit != "true" }}
+      if: ${{ steps.pnpm_cache.outputs.cache-hit != 'true' }}
       run: npm i -g pnpm@${{ env.PNPM_VERSION }}
 
 
     - name: Install dependencies
-      if: ${{ steps.packages_cache.outputs.cache-hit != "true" }}
+      if: ${{ steps.packages_cache.outputs.cache-hit != 'true' }}
       run: pnpm i
 
     - name: Build Next.js app
