@@ -40,8 +40,8 @@ jobs:
     - name: Calculate cache keys
       id: cache-keys
       run: |
-        echo "::set-output name=packages::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}")"
         echo "::set-output name=pnpm::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-pnpm-${{ env.PNPM_VERSION }}")"
+        echo "::set-output name=packages::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}")"
 
     - name: Use pnpm cache
       uses: actions/cache@v3
@@ -87,6 +87,10 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
+    - name: Debug outputs
+      run: |
+        echo ${{ needs.setup.outputs.pnpm-cache-key }}
+        echo ${{ needs.setup.outputs.packages-cache-key }}
     - name: Use pnpm cache
       uses: actions/cache@v3
       id: pnpm_cache
