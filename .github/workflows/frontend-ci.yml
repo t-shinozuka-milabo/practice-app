@@ -13,7 +13,60 @@ env:
   PNPM_VERSION: 8.7.6
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      pnpm-cache-key: ${{ steps.packages-cache.outputs.pnpm }}
+      packages-cache-key: ${{ steps.packages-cache.outputs.packages }}
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set Timezone
+      uses: szenius/set-timezone@v1.0
+      with:
+        timezoneLinux: "Asia/Tokyo"
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Calculate cache keys
+      id: cache-keys
+      run: |
+        echo "::set-output name=packages::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}")"
+        echo "::set-output name=pnpm::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-pnpm-${{ env.PNPM_VERSION }}")"
+
+    - name: Use pnpm cache
+      uses: actions/cache@v3
+      id: pnpm-cache
+      with:
+        path: ~/.npm/pnpm-global
+        key: ${{ steps.packages-cache.outputs.pnpm }}
+
+    - name: Install globals
+      if: ${{ steps.pnpm-cache.outputs.cache-hit != 'true' }}
+      run: npm i -g pnpm@${{ env.PNPM_VERSION }}
+
+    - name: Use Node modules cache
+      uses: actions/cache@v3
+      id: packages-cache
+      with:
+        path: ~/.npm
+        key: ${{ steps.cache-keys.outputs.packages }}
+
+    - name: Install dependencies
+      if: ${{ steps.packages-cache.outputs.cache-hit != 'true' }}
+      run: pnpm i
+
   run-unit-test:
+    needs: setup
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -38,60 +91,21 @@ jobs:
       uses: actions/cache@v3
       id: pnpm_cache
       with:
-        path: |
-          /opt/hostedtoolcache/node/18.19.1/x64/bin/pnpm
-          /opt/hostedtoolcache/node/18.19.1/x64/lib/pnpm
-        key: ${{ runner.os }}-node-${{ matrix.node-version }}-pnpm-${{ env.PNPM_VERSION }}
-
-    - name: Install globals
-      if: ${{ steps.pnpm_cache.outputs.cache-hit != 'true' }}
-      run: npm i -g pnpm@${{ env.PNPM_VERSION }}
+        path: ~/.npm/pnpm-global
+        key: ${{ needs.setup.outputs.pnpm-cache-key }}
 
     - name: Use Node modules cache
       uses: actions/cache@v3
       id: packages_cache
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}
-
-    - name: Install dependencies
-      if: ${{ steps.packages_cache.outputs.cache-hit != 'true' }}
-      run: pnpm i
+        key: ${{ needs.setup.outputs.packages-cache-key }}
 
     - name: Run test
       run: ls && pnpm test
 
-  run-component-test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Set Timezone
-      uses: szenius/set-timezone@v1.0
-      with:
-        timezoneLinux: "Asia/Tokyo"
-
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
-
-    - name: Install globals
-      if: ${{ steps.pnpm_cache.outputs.cache-hit != 'true' }}
-      run: npm i -g pnpm@${{ env.PNPM_VERSION }}
-
-
-    - name: Install dependencies
-      if: ${{ steps.packages_cache.outputs.cache-hit != 'true' }}
-      run: pnpm i
-
   build-nextjs-app:
+    needs: setup
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -107,14 +121,19 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install globals
-      if: ${{ steps.pnpm_cache.outputs.cache-hit != 'true' }}
-      run: npm i -g pnpm@${{ env.PNPM_VERSION }}
+    - name: Use pnpm cache
+      uses: actions/cache@v3
+      id: pnpm_cache
+      with:
+        path: ~/.npm/pnpm-global
+        key: ${{ needs.setup.outputs.pnpm-cache-key }}
 
-
-    - name: Install dependencies
-      if: ${{ steps.packages_cache.outputs.cache-hit != 'true' }}
-      run: pnpm i
+    - name: Use Node modules cache
+      uses: actions/cache@v3
+      id: packages_cache
+      with:
+        path: ~/.npm
+        key: ${{ needs.setup.outputs.packages-cache-key }}
 
     - name: Build Next.js app
       run: pnpm build
