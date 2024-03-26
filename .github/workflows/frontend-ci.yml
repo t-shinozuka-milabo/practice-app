@@ -19,8 +19,8 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     outputs:
-      pnpm-cache-key: ${{ steps.packages-cache.outputs.pnpm }}
-      packages-cache-key: ${{ steps.packages-cache.outputs.packages }}
+      pnpm-cache-key: ${{ steps.cache-keys.outputs.pnpm }}
+      packages-cache-key: ${{ steps.cache-keys.outputs.packages }}
     strategy:
       matrix:
         node-version: [18.x]
