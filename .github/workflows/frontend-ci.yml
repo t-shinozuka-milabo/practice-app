@@ -20,6 +20,7 @@ jobs:
         working-directory: ${{ github.workspace }}
     outputs:
       packages-cache-key: ${{ steps.cache-keys.outputs.packages }}
+      playwright-cache-key: ${{ steps.cache-keys.outputs.playwright }}
     strategy:
       matrix:
         node-version: [18.x]
