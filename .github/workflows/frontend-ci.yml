@@ -44,7 +44,7 @@ jobs:
       id: cache-keys
       run: |
         echo "packages=${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
-        echo "playwright=${{ runner.os }}-node-${{ matrix.node-version }}-playwright-$(pnpm exec playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
+        echo "playwright=${{ runner.os }}-node-${{ matrix.node-version }}-playwright-$(npx playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
 
     - name: Use Node modules cache
       if: ${{ !startsWith(github.head_ref, 'dependabot') }}
