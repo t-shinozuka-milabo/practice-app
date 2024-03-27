@@ -43,7 +43,7 @@ jobs:
     - name: Calculate cache keys
       id: cache-keys
       run: |
-        echo "packages=${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+        echo "packages=${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
         echo "playwright=${{ runner.os }}-node-${{ matrix.node-version }}-playwright-$(npx playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
 
     - name: Use Node modules cache
