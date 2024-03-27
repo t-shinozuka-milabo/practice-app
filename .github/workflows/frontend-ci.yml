@@ -76,15 +76,21 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
+    - uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
     - name: Use Node modules cache
       uses: actions/cache/restore@v3
+      id: packages-cache
       with:
         path: "**/node_modules"
         key: ${{ needs.setup.outputs.packages-cache-key }}
 
-    - uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
+    - name: Install dependencies
+      if: ${{ steps.packages-cache.outputs.cache-hit != 'true' }}
+      run: pnpm i
+
     - name: Run test
       run: pnpm test
 
@@ -105,11 +111,19 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
+    - uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
     - name: Use Node modules cache
       uses: actions/cache/restore@v3
       with:
         path: "**/node_modules"
         key: ${{ needs.setup.outputs.packages-cache-key }}
+
+    - name: Install dependencies
+      if: ${{ steps.packages-cache.outputs.cache-hit != 'true' }}
+      run: pnpm i
 
     - uses: pnpm/action-setup@v2
       with:
