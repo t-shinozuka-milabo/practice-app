@@ -40,8 +40,8 @@ jobs:
     - name: Calculate cache keys
       id: cache-keys
       run: |
-        echo "::set-output name=pnpm::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-pnpm-${{ env.PNPM_VERSION }}")"
-        echo "::set-output name=packages::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}")"
+        echo "::save-state name=pnpm::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-pnpm-${{ env.PNPM_VERSION }}")"
+        echo "::save-state name=packages::$(echo "${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}")"
 
     - name: Use pnpm cache
       uses: actions/cache@v3
@@ -58,7 +58,7 @@ jobs:
       uses: actions/cache@v3
       id: packages-cache
       with:
-        path: ~/.npm
+        path: "**/node_modules"
         key: ${{ steps.cache-keys.outputs.packages }}
 
     - name: Install dependencies
@@ -105,8 +105,11 @@ jobs:
         path: ~/.npm
         key: ${{ needs.setup.outputs.packages-cache-key }}
 
+    - uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
     - name: Run test
-      run: ls && pnpm test
+      run: pnpm test
 
   build-nextjs-app:
     needs: setup
