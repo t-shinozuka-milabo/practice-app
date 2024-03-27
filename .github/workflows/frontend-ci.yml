@@ -102,7 +102,7 @@ jobs:
       uses: actions/cache@v3
       id: packages_cache
       with:
-        path: ~/.npm
+        path: "**/node_modules"
         key: ${{ needs.setup.outputs.packages-cache-key }}
 
     - uses: pnpm/action-setup@v2
