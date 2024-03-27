@@ -40,21 +40,10 @@ jobs:
     - name: Calculate cache keys
       id: cache-keys
       run: |
-        echo "pnpm=${{ runner.os }}-node-${{ matrix.node-version }}-pnpm-${{ env.PNPM_VERSION }}" >> $GITHUB_OUTPUT
         echo "packages=${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
 
-    - name: Use pnpm cache
-      uses: actions/cache@v3
-      id: pnpm-cache
-      with:
-        path: ~/.npm/pnpm-global
-        key: ${{ steps.packages-cache.outputs.pnpm }}
-
-    - name: Install globals
-      if: ${{ steps.pnpm-cache.outputs.cache-hit != 'true' }}
-      run: npm i -g pnpm@${{ env.PNPM_VERSION }}
-
     - name: Use Node modules cache
+      if: ${{ !startsWith(github.head_ref, 'dependabot') }}
       uses: actions/cache@v3
       id: packages-cache
       with:
@@ -87,20 +76,8 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Debug outputs
-      run: |
-        echo ${{ needs.setup.outputs.pnpm-cache-key }}
-        echo ${{ needs.setup.outputs.packages-cache-key }}
-    - name: Use pnpm cache
-      uses: actions/cache@v3
-      id: pnpm_cache
-      with:
-        path: ~/.npm/pnpm-global
-        key: ${{ needs.setup.outputs.pnpm-cache-key }}
-
     - name: Use Node modules cache
-      uses: actions/cache@v3
-      id: packages_cache
+      uses: actions/cache/restore@v3
       with:
         path: "**/node_modules"
         key: ${{ needs.setup.outputs.packages-cache-key }}
@@ -128,19 +105,14 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Use pnpm cache
-      uses: actions/cache@v3
-      id: pnpm_cache
-      with:
-        path: ~/.npm/pnpm-global
-        key: ${{ needs.setup.outputs.pnpm-cache-key }}
-
     - name: Use Node modules cache
-      uses: actions/cache@v3
-      id: packages_cache
+      uses: actions/cache/restore@v3
       with:
-        path: ~/.npm
+        path: "**/node_modules"
         key: ${{ needs.setup.outputs.packages-cache-key }}
 
+    - uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
     - name: Build Next.js app
       run: pnpm build
