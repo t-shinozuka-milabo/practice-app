@@ -19,7 +19,6 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     outputs:
-      pnpm-cache-key: ${{ steps.cache-keys.outputs.pnpm }}
       packages-cache-key: ${{ steps.cache-keys.outputs.packages }}
     strategy:
       matrix:
@@ -37,10 +36,15 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
+    - uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
     - name: Calculate cache keys
       id: cache-keys
       run: |
         echo "packages=${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+        echo "playwright=${{ runner.os }}-node-${{ matrix.node-version }}-$(node -e "console.log(require('./package-lock.json').dependencies['@playwright/test'].version)")" >> $GITHUB_OUTPUT
 
     - name: Use Node modules cache
       if: ${{ !startsWith(github.head_ref, 'dependabot') }}
@@ -53,6 +57,18 @@ jobs:
     - name: Install dependencies
       if: ${{ steps.packages-cache.outputs.cache-hit != 'true' }}
       run: pnpm i
+
+    - name: Use playwright cache
+      if: ${{ !startsWith(github.head_ref, 'dependabot') }}
+      uses: actions/cache@v3
+      id: playwright-cache
+      with:
+        path: /home/runner/.cache/ms-playwright
+        key: ${{ steps.cache-keys.outputs.playwright }}
+
+    - name: Install Browser
+      if: ${{ steps.playwright-cache.outputs.cache-hit != 'true' }}
+      run: pnpm exec playwright install --with-deps chromium
 
   run-unit-test:
     needs: setup
@@ -93,6 +109,56 @@ jobs:
 
     - name: Run test
       run: pnpm test
+
+  run-component-test:
+    needs: setup
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set Timezone
+      uses: szenius/set-timezone@v1.0
+      with:
+        timezoneLinux: "Asia/Tokyo"
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: Use Node modules cache
+      uses: actions/cache/restore@v3
+      id: packages-cache
+      with:
+        path: "**/node_modules"
+        key: ${{ needs.setup.outputs.packages-cache-key }}
+
+    - name: Install dependencies
+      if: ${{ steps.packages-cache.outputs.cache-hit != 'true' }}
+      run: pnpm i
+
+    - name: Use playwright cache
+      uses: actions/cache/restore@v3
+      id: playwright-cache
+      with:
+        path: /home/runner/.cache
+        key: ${{ needs.setup.outputs.playwright-cache-key }}
+
+    - name: Install Browser
+      if: ${{ steps.playwright-cache.outputs.cache-hit != 'true' }}
+      run: pnpm exec playwright install --with-deps chromium
+
+    - name: Run Storybook test
+      run: pnpm test-storybook:ci
 
   build-nextjs-app:
     needs: setup
