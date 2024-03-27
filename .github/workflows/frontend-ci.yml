@@ -38,6 +38,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Calculate cache keys
+      id: cache-keys
       run: |
         echo "pnpm=${{ runner.os }}-node-${{ matrix.node-version }}-pnpm-${{ env.PNPM_VERSION }}" >> $GITHUB_OUTPUT
         echo "packages=${{ runner.os }}-node-${{ matrix.node-version }}-nextjs-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
